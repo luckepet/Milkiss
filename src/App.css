@@ -1951,3 +1951,63 @@ button {
     font-size: 23px;
   }
 }
+/* ARREGLO CARRITO HEADER */
+.header-acciones {
+  display: flex !important;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  z-index: 10;
+}
+
+.boton-buscar,
+.boton-carrito {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  position: relative;
+  z-index: 20;
+}
+
+.icono-carrito {
+  display: block !important;
+  font-size: 24px;
+  line-height: 1;
+}
+
+.numero-carrito {
+  position: absolute;
+  top: 2px;
+  right: 0;
+}
+@media (max-width: 600px) {
+  .header-acciones {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 4px !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+  }
+
+  .boton-buscar,
+  .boton-carrito {
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    width: 40px !important;
+    height: 40px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .icono-carrito {
+    display: block !important;
+    visibility: visible !important;
+    font-size: 23px !important;
+  }
+}
