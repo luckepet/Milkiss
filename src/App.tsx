@@ -1883,20 +1883,26 @@ async function cargarProductos() {
 
   return (
     <div className="app">
-      <Header
-        setMostrarCarrito={
-          setMostrarCarrito
-        }
-        cantidadCarrito={
-          cantidadCarrito
-        }
-        busqueda={
-          busqueda
-        }
-        setBusqueda={
-          setBusqueda
-        }
-      />
+<Header
+  setMostrarCarrito={
+    setMostrarCarrito
+  }
+  cantidadCarrito={
+    cantidadCarrito
+  }
+  busqueda={
+    busqueda
+  }
+  setBusqueda={
+    setBusqueda
+  }
+  menuCategoriasAbierto={
+    menuCategoriasAbierto
+  }
+  setMenuCategoriasAbierto={
+    setMenuCategoriasAbierto
+  }
+/>
 
       <style>{`
         @keyframes luckepetCategoryOpen {
@@ -1905,114 +1911,128 @@ async function cargarProductos() {
         }
       `}</style>
 
-      {/* HAMBURGUESA DE CATEGORÍAS */}
-      <div style={{ position: 'fixed', left: 0, top: '92px', zIndex: 1000 }}>
-        <button
-          type="button"
-          onClick={() => setMenuCategoriasAbierto(v => !v)}
-          aria-label={menuCategoriasAbierto ? 'Cerrar categorías' : 'Abrir categorías'}
-          aria-expanded={menuCategoriasAbierto}
-          style={{
-            width: '56px',
-            height: '56px',
-            border: '1px solid rgba(255,255,255,.18)',
-            borderLeft: 'none',
-            borderRadius: '0 16px 16px 0',
-            background: '#BA92BB',
-            color: '#fff',
-            boxShadow: '5px 6px 18px rgba(0,0,0,.20)',
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all .2s ease'
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.width = '60px'
-            e.currentTarget.style.background = '#9F719F'
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.width = '56px'
-            e.currentTarget.style.background = '#BA92BB'
-          }}
-        >
-          <span
-            style={{
-              fontSize: '26px',
-              lineHeight: 1,
-              fontWeight: 700,
-              transform: menuCategoriasAbierto ? 'rotate(90deg)' : 'rotate(0deg)',
-              transition: 'transform .22s ease'
-            }}
-          >
-            ☰
-          </span>
-        </button>
+      {/* MENÚ DE CATEGORÍAS - SE ABRE DESDE LA BARRA SUPERIOR */}
 
-        <div
-          style={{
-            position: 'absolute',
-            left: 0,
-            top: '58px',
-            width: '320px',
-            height: 'min(72vh, calc(100vh - 155px))',
-            maxHeight: 'calc(100vh - 155px)',
-            overflowY: 'auto',
-            overflowX: 'hidden',
-            overscrollBehaviorY: 'contain',
-            WebkitOverflowScrolling: 'touch',
-            background: '#ddc9dd',
-            border: '1px solid rgba(255,255,255,.13)',
-            borderLeft: 'none',
-            borderRadius: '0 18px 18px 0',
-            boxShadow: '8px 12px 30px rgba(0,0,0,.22)',
-            padding: '12px',
-            scrollbarWidth: 'thin',
-            scrollbarColor: 'rgba(255,255,255,.25) transparent',
-            transform: menuCategoriasAbierto ? 'translateX(0)' : 'translateX(-315px)',
-            transition: 'transform .25s ease',
-            boxSizing: 'border-box'
-          }}
-        >
-          <div style={{ position: 'sticky', top: 0, zIndex: 2, background: '#BA92BB', paddingBottom: '11px' }}>
-            <button
-              type="button"
-              onClick={() => seleccionarCategoria('Todos')}
-              style={{
-                width: '100%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                border: '1px solid rgba(255,255,255,.20)',
-                background: '#fff',
-                padding: '11px 12px',
-                borderRadius: '11px',
-                fontWeight: 800,
-                color: '#BA92BB',
-                cursor: 'pointer',
-                boxShadow: '0 3px 10px rgba(0,0,0,.14)',
-                transition: 'transform .18s ease, box-shadow .18s ease'
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.transform = 'translateY(-1px)'
-                e.currentTarget.style.boxShadow = '0 5px 13px rgba(0,0,0,.18)'
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.transform = 'translateY(0)'
-                e.currentTarget.style.boxShadow = '0 3px 10px rgba(0,0,0,.14)'
-              }}
-            >
-              <span aria-hidden="true">⌂</span>
-              <span>Todos los productos</span>
-            </button>
-          </div>
+<div
+  style={{
+    position: 'fixed',
+    left: 0,
+    top: '68px',
+    width: '320px',
+    height: 'min(72vh, calc(100vh - 68px))',
+    maxHeight: 'calc(100vh - 68px)',
 
-          {categorias.length > 0 ? renderMenuCategorias(null) : (
-            <div style={{ color: '#fff', padding: '14px 8px', fontSize: '13px' }}>No hay categorías disponibles.</div>
-          )}
-        </div>
-      </div>
+    overflowY: 'auto',
+    overflowX: 'hidden',
+    overscrollBehaviorY: 'contain',
+    WebkitOverflowScrolling: 'touch',
+
+    background: '#ddc9dd',
+
+    border: '1px solid rgba(255,255,255,.13)',
+    borderLeft: 'none',
+    borderRadius: '0 0 18px 0',
+
+    boxShadow: '8px 12px 30px rgba(0,0,0,.22)',
+
+    padding: '12px',
+
+    scrollbarWidth: 'thin',
+    scrollbarColor: 'rgba(255,255,255,.25) transparent',
+
+    transform: menuCategoriasAbierto
+      ? 'translateY(0)'
+      : 'translateY(-110%)',
+
+    opacity: menuCategoriasAbierto ? 1 : 0,
+
+    pointerEvents: menuCategoriasAbierto
+      ? 'auto'
+      : 'none',
+
+    transition:
+      'transform .25s ease, opacity .2s ease',
+
+    boxSizing: 'border-box'
+  }}
+>
+  <div
+    style={{
+      position: 'sticky',
+      top: 0,
+      zIndex: 2,
+      background: '#BA92BB',
+      paddingBottom: '11px'
+    }}
+  >
+    <button
+      type="button"
+      onClick={() => seleccionarCategoria('Todos')}
+      style={{
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+
+        border: '1px solid rgba(255,255,255,.20)',
+
+        background: '#fff',
+
+        padding: '11px 12px',
+
+        borderRadius: '11px',
+
+        fontWeight: 800,
+
+        color: '#BA92BB',
+
+        cursor: 'pointer',
+
+        boxShadow: '0 3px 10px rgba(0,0,0,.14)',
+
+        transition:
+          'transform .18s ease, box-shadow .18s ease'
+      }}
+
+      onMouseEnter={(e) => {
+        e.currentTarget.style.transform =
+          'translateY(-1px)'
+
+        e.currentTarget.style.boxShadow =
+          '0 5px 13px rgba(0,0,0,.18)'
+      }}
+
+      onMouseLeave={(e) => {
+        e.currentTarget.style.transform =
+          'translateY(0)'
+
+        e.currentTarget.style.boxShadow =
+          '0 3px 10px rgba(0,0,0,.14)'
+      }}
+    >
+      <span aria-hidden="true">⌂</span>
+
+      <span>
+        Todos los productos
+      </span>
+    </button>
+  </div>
+
+  {categorias.length > 0 ? (
+    renderMenuCategorias(null)
+  ) : (
+    <div
+      style={{
+        color: '#fff',
+        padding: '14px 8px',
+        fontSize: '13px'
+      }}
+    >
+      No hay categorías disponibles.
+    </div>
+  )}
+</div>
 
       {/* =================================================
           CARRITO
