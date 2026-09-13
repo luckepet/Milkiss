@@ -177,19 +177,14 @@ button {
 }
 
 .categorias button {
-  background: white;
-  color: #ba92bb;
-
+  background: #BA92BB;
+  color: white;
   padding: 10px 20px;
-
   border-radius: 25px;
-
   font-size: 15px;
   font-weight: 600;
-
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
 }
-
 .categorias button:hover {
   background: #ba92bb;
   color: white;
@@ -1013,7 +1008,7 @@ button {
   bottom: 16px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(18, 54, 34, 0.86);
+  background: #ba92bb;
   color: #ffffff;
   padding: 6px 12px;
   border-radius: 30px;
@@ -1604,7 +1599,7 @@ button {
   justify-content: space-between;
   gap: 15px;
   padding: 9px 0;
-  border-bottom: 1px solid rgba(18, 54, 34, 0.12);
+  border-bottom: 1px solid #ba92bb;
   font-size: 14px;
 }
 
@@ -1618,7 +1613,7 @@ button {
   align-items: center;
   margin-top: 15px;
   padding-top: 15px;
-  border-top: 2px solid #123622;
+  border-top: 2px solid #ba92bb;
   font-size: 18px;
 }
 
@@ -1639,7 +1634,7 @@ button {
   width: 100%;
   box-sizing: border-box;
   padding: 12px 13px;
-  border: 1px solid rgba(18, 54, 34, 0.25);
+  border: 1px solid #ba92bb;
   border-radius: 8px;
   background: white;
   font-size: 15px;
@@ -1647,7 +1642,7 @@ button {
 }
 
 .checkout-grid input:focus {
-  border-color: #2f6b3f;
+  border-color: #ba92bb;
 }
 
 .checkout-campo-completo {
@@ -1678,7 +1673,7 @@ button {
   height: 65px;
   margin: 0 auto 18px;
   border-radius: 50%;
-  background: #123622;
+  background: #ba92bb;
   color: white;
   display: flex;
   align-items: center;

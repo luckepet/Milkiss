@@ -1,5 +1,4 @@
 import './App.css'
-import { TIENDA_CONFIG } from './config/tienda'
 
 import Header from './components/header'
 import Footer from './components/footer'
@@ -57,17 +56,17 @@ type ItemCarrito = Producto & {
 }
 
 // =====================================================
-// WHATSAPP
+// WHATSAPP LUCKEPET
 // =====================================================
 
-const WHATSAPP_NUMERO = TIENDA_CONFIG.contacto.whatsappNumero
+const WHATSAPP_NUMERO = '5492664015639'
 
 // =====================================================
 // ESTADÍSTICAS
 // =====================================================
 
 const obtenerSessionId = () => {
-  const clave = TIENDA_CONFIG.estadisticas.sessionStorageKey
+  const clave = 'luckepet_session_id'
 
   let sessionId = localStorage.getItem(clave)
 
@@ -328,11 +327,11 @@ const [, setImagenesGenerales] =
 
   useEffect(() => {
     if (
-      !window.history.state?.tiendaBase
+      !window.history.state?.luckepetBase
     ) {
       window.history.replaceState(
         {
-          tiendaBase: true
+          luckepetBase: true
         },
         '',
         window.location.href
@@ -725,7 +724,7 @@ async function cargarProductos() {
 
     window.history.pushState(
       {
-        tiendaProducto: true,
+        luckepetProducto: true,
         productoId: producto.id
       },
       '',
@@ -810,7 +809,7 @@ async function cargarProductos() {
 
   const cerrarProducto = () => {
     if (
-      window.history.state?.tiendaProducto
+      window.history.state?.luckepetProducto
     ) {
       window.history.back()
       return
@@ -1530,7 +1529,7 @@ async function cargarProductos() {
         )
 
       const mensajeWhatsApp =
-        `Hola ${TIENDA_CONFIG.marca.nombre} 👋\n` +
+        `Hola LuckePet 👋\n` +
         `Ya realicé mi compra.\n\n` +
         `N.º de pedido: #${numeroPedido}\n` +
         `Nombre: ${nombreCompleto}\n` +
@@ -1746,11 +1745,7 @@ async function cargarProductos() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
-                background: nivel === 0
-                  ? 'linear-gradient(135deg, #35543e 0%, #263d2d 100%)'
-                  : nivel === 1
-                    ? 'linear-gradient(135deg, #4b7355 0%, #3f6249 100%)'
-                    : 'linear-gradient(135deg, #5a8062 0%, #4b6f54 100%)',
+                background: '#BA92BB',
                 borderRadius: '13px',
                 overflow: 'hidden',
                 border: '1px solid rgba(255,255,255,.13)',
@@ -1772,7 +1767,7 @@ async function cargarProductos() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '9px',
-                  textAlign: 'left',
+                  textAlign: 'center',
                   border: 0,
                   background: 'transparent',
                   padding: '13px 12px',
@@ -1841,7 +1836,7 @@ async function cargarProductos() {
                   marginTop: '8px',
                   marginLeft: 0,
                   paddingLeft: 0,
-                  animation: 'categoryOpen .18s ease'
+                  animation: 'luckepetCategoryOpen .18s ease'
                 }}
               >
                 <button
@@ -1854,7 +1849,7 @@ async function cargarProductos() {
                     gap: '8px',
                     textAlign: 'left',
                     border: '1px solid rgba(255,255,255,.14)',
-                    background: 'linear-gradient(135deg, #4b7355 0%, #3f6249 100%)',
+                    background: 'rgba(255,255,255,.11)',
                     padding: '13px 12px',
                     borderRadius: '13px',
                     fontWeight: 550,
@@ -1866,11 +1861,11 @@ async function cargarProductos() {
                     transition: 'background .18s ease, transform .18s ease'
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.background = 'linear-gradient(135deg, #557f5f 0%, #476e50 100%)'
+                    e.currentTarget.style.background = 'rgba(255,255,255,.17)'
                     e.currentTarget.style.transform = 'translateX(2px)'
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.background = 'linear-gradient(135deg, #4b7355 0%, #3f6249 100%)'
+                    e.currentTarget.style.background = 'rgba(255,255,255,.11)'
                     e.currentTarget.style.transform = 'translateX(0)'
                   }}
                 >
@@ -1904,7 +1899,7 @@ async function cargarProductos() {
       />
 
       <style>{`
-        @keyframes categoryOpen {
+        @keyframes luckepetCategoryOpen {
           from { opacity: 0; transform: translateY(-3px); }
           to { opacity: 1; transform: translateY(0); }
         }
@@ -1923,7 +1918,7 @@ async function cargarProductos() {
             border: '1px solid rgba(255,255,255,.18)',
             borderLeft: 'none',
             borderRadius: '0 16px 16px 0',
-            background: 'linear-gradient(145deg, #35543e 0%, #263d2d 100%)',
+            background: '#BA92BB',
             color: '#fff',
             boxShadow: '5px 6px 18px rgba(0,0,0,.20)',
             cursor: 'pointer',
@@ -1934,11 +1929,11 @@ async function cargarProductos() {
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.width = '60px'
-            e.currentTarget.style.background = 'linear-gradient(145deg, #3e6048 0%, #263d2d 100%)'
+            e.currentTarget.style.background = '#9F719F'
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.width = '56px'
-            e.currentTarget.style.background = 'linear-gradient(145deg, #35543e 0%, #263d2d 100%)'
+            e.currentTarget.style.background = '#BA92BB'
           }}
         >
           <span
@@ -1966,7 +1961,7 @@ async function cargarProductos() {
             overflowX: 'hidden',
             overscrollBehaviorY: 'contain',
             WebkitOverflowScrolling: 'touch',
-            background: 'linear-gradient(180deg, #263d2d 0%, #213428 100%)',
+            background: '#ddc9dd',
             border: '1px solid rgba(255,255,255,.13)',
             borderLeft: 'none',
             borderRadius: '0 18px 18px 0',
@@ -1979,7 +1974,7 @@ async function cargarProductos() {
             boxSizing: 'border-box'
           }}
         >
-          <div style={{ position: 'sticky', top: 0, zIndex: 2, background: 'linear-gradient(180deg, #263d2d 80%, rgba(38,61,45,0) 100%)', paddingBottom: '11px' }}>
+          <div style={{ position: 'sticky', top: 0, zIndex: 2, background: '#BA92BB', paddingBottom: '11px' }}>
             <button
               type="button"
               onClick={() => seleccionarCategoria('Todos')}
@@ -1994,7 +1989,7 @@ async function cargarProductos() {
                 padding: '11px 12px',
                 borderRadius: '11px',
                 fontWeight: 800,
-                color: '#263d2d',
+                color: '#BA92BB',
                 cursor: 'pointer',
                 boxShadow: '0 3px 10px rgba(0,0,0,.14)',
                 transition: 'transform .18s ease, box-shadow .18s ease'
@@ -2533,7 +2528,7 @@ async function cargarProductos() {
           {productosFiltrados.length === 0 ? (
             <div className="sin-productos">
               <h3>
-                🐾 No encontramos
+              No encontramos
                 productos
               </h3>
 
