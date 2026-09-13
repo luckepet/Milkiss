@@ -1916,11 +1916,10 @@ button {
 
 @media (max-width: 600px) {
 
-  .topbar {
-    min-height: 68px;
-
-    padding: 6px 10px;
-  }
+.topbar {
+  min-height: 100px;
+  padding: 8px 10px;
+}
 
   .boton-menu {
     width: 42px;
@@ -1932,8 +1931,10 @@ button {
   }
 
 .logo-img {
-  max-width: 260px;
-  max-height: 90px;
+  width: 260px !important;
+  max-width: 260px !important;
+  height: auto !important;
+  max-height: 100px !important;
 }
 
   .header-acciones {
