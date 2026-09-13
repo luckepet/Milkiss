@@ -721,12 +721,10 @@ button {
     background: #ba92bb;
   }
 
-  .logo-img {
-    width: 155px;
-
-    grid-column: 1;
-    grid-row: 1;
-  }
+.logo-img {
+  max-width: 230px;
+  max-height: 85px;
+}
 
   .boton-carrito {
     width: 48px;
@@ -1934,10 +1932,10 @@ button {
     width: 28px;
   }
 
-  .logo-img {
-    max-width: 150px;
-    max-height: 58px;
-  }
+.logo-img {
+  max-width: 260px;
+  max-height: 90px;
+}
 
   .header-acciones {
     gap: 2px;
