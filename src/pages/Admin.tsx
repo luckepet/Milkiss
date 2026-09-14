@@ -1,6 +1,15 @@
 import { TIENDA_CONFIG } from "../config/tienda";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "../lib/supabase";
+// ============================================================
+// CONFIGURACIÓN DE LA PLANTILLA
+// ============================================================
+// La identidad visual de la tienda se controla desde
+// src/config/tienda.ts. La lógica del administrador permanece igual.
+const COLOR_PRINCIPAL = TIENDA_CONFIG.colores.principal;
+const COLOR_TEXTO_CLARO = TIENDA_CONFIG.colores.textoClaro;
+const MONEDA = TIENDA_CONFIG.tienda.moneda;
+
 
 type Producto = {
   id: number;
@@ -163,6 +172,10 @@ function Admin() {
   >({});
 
   const [preciosPorColor, setPreciosPorColor] = useState<
+    Record<string, number>
+  >({});
+
+  const [preciosPorTalle, setPreciosPorTalle] = useState<
     Record<string, number>
   >({});
 
@@ -907,6 +920,11 @@ function Admin() {
       ],
     });
 
+    setPreciosPorTalle((actuales) => ({
+      ...actuales,
+      [talle]: Number(nuevoProducto.price || 0),
+    }));
+
     setNuevoTalle("");
   }
 
@@ -950,7 +968,7 @@ function Admin() {
     setPreciosPorColor((actuales) => ({
       ...actuales,
       [clave]: Number(
-        nuevoProducto.price || 0
+        preciosPorTalle[talle] ?? nuevoProducto.price ?? 0
       ),
     }));
 
@@ -968,6 +986,12 @@ function Admin() {
     });
 
     setColoresPorTalle((actuales) => {
+      const copia = { ...actuales };
+      delete copia[talle];
+      return copia;
+    });
+
+    setPreciosPorTalle((actuales) => {
       const copia = { ...actuales };
       delete copia[talle];
       return copia;
@@ -1260,68 +1284,72 @@ function Admin() {
               talle
             ] || [];
 
-          for (
-            const color of colores
-          ) {
-            const clave =
-              clavePrecioNuevo(
-                talle,
-                color
-              );
-
-            const precioGuardado =
-              Number(
-                preciosPorColor[
-                  clave
-                ] ??
-                  nuevoProducto.price ??
-                  0
-              );
+          if (colores.length === 0) {
+            const precioGuardado = Number(
+              preciosPorTalle[talle] ?? nuevoProducto.price ?? 0
+            );
 
             const {
-              data:
-                varianteCreada,
-              error:
-                errorVariante,
+              data: varianteCreada,
+              error: errorVariante,
             } = await supabase
-              .from(
-                "ProductoVariantes"
-              )
+              .from("ProductoVariantes")
               .insert({
-                producto_id:
-                  productoCreado.id,
+                producto_id: productoCreado.id,
                 talle,
-                color,
-                precio:
-                  precioGuardado,
+                color: "",
+                precio: precioGuardado,
               })
               .select()
               .single();
 
-            if (
-              errorVariante ||
-              !varianteCreada
-            ) {
-              console.error(
-                "ERROR AL CREAR VARIANTE:",
-                errorVariante
-              );
-
+            if (errorVariante || !varianteCreada) {
+              console.error("ERROR AL CREAR VARIANTE:", errorVariante);
               continue;
             }
 
-            const fotos =
-              fotosPorColor[
-                clave
-              ] || [];
+            // Un talle sin color también puede tener sus propias fotos.
+            const clave = clavePrecioNuevo(talle, "");
+            const fotos = fotosPorColor[clave] || [];
 
-            if (
-              fotos.length > 0
-            ) {
-              await subirImagenesDeVariante(
-                fotos,
-                varianteCreada.id!
+            if (fotos.length > 0) {
+              await subirImagenesDeVariante(fotos, varianteCreada.id!);
+            }
+          } else {
+            for (const color of colores) {
+              const clave = clavePrecioNuevo(talle, color);
+
+              const precioGuardado = Number(
+                preciosPorColor[clave] ??
+                  preciosPorTalle[talle] ??
+                  nuevoProducto.price ??
+                  0
               );
+
+              const {
+                data: varianteCreada,
+                error: errorVariante,
+              } = await supabase
+                .from("ProductoVariantes")
+                .insert({
+                  producto_id: productoCreado.id,
+                  talle,
+                  color,
+                  precio: precioGuardado,
+                })
+                .select()
+                .single();
+
+              if (errorVariante || !varianteCreada) {
+                console.error("ERROR AL CREAR VARIANTE:", errorVariante);
+                continue;
+              }
+
+              const fotos = fotosPorColor[clave] || [];
+
+              if (fotos.length > 0) {
+                await subirImagenesDeVariante(fotos, varianteCreada.id!);
+              }
             }
           }
         }
@@ -1345,6 +1373,7 @@ function Admin() {
       setColoresPorTalle({});
       setFotosPorColor({});
       setPreciosPorColor({});
+      setPreciosPorTalle({});
       setFotosNuevasVariantes({});
       setMostrarNuevo(false);
     } finally {
@@ -2480,7 +2509,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
       fontSize: "14px",
       fontWeight: 600,
       marginBottom: "6px",
-      color: "#263d2d",
+      color: COLOR_PRINCIPAL,
     };
 
   const buttonStyle: React.CSSProperties =
@@ -2506,7 +2535,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
           justifyContent:
             "center",
           background: "#f0ead2",
-          color: "#263d2d",
+          color: COLOR_PRINCIPAL,
         }}
       >
         Cargando...
@@ -2547,7 +2576,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
           <h1
             style={{
               marginTop: 0,
-              color: "#263d2d",
+              color: COLOR_PRINCIPAL,
               textAlign: "center",
             }}
           >
@@ -2557,7 +2586,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
           <p
             style={{
               textAlign: "center",
-              color: "#666",
+              color: COLOR_TEXTO_CLARO,
               marginBottom: "25px",
             }}
           >
@@ -2620,7 +2649,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
               ...buttonStyle,
               width: "100%",
               background:
-                "#263d2d",
+                COLOR_PRINCIPAL,
               color: "#fff",
               opacity:
                 iniciandoSesion
@@ -2692,7 +2721,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
             <h1
               style={{
                 margin: 0,
-                color: "#263d2d",
+                color: COLOR_PRINCIPAL,
                 fontSize: "28px",
               }}
             >
@@ -2703,7 +2732,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
               style={{
                 margin:
                   "5px 0 0",
-                color: "#666",
+                color: COLOR_TEXTO_CLARO,
               }}
             >
               Administrar productos
@@ -2763,7 +2792,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
               style={{
                 ...buttonStyle,
                 background:
-                  "#263d2d",
+                  COLOR_PRINCIPAL,
                 color: "#fff",
               }}
             >
@@ -2780,7 +2809,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                 background:
                   "#fff",
                 color:
-                  "#263d2d",
+                  COLOR_PRINCIPAL,
                 border:
                   "1px solid #263d2d",
               }}
@@ -2802,7 +2831,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
             style={{
               width: "100%", display: "flex", alignItems: "center",
               justifyContent: "space-between", gap: "12px", padding: "14px 16px",
-              borderRadius: "12px", border: "1px solid #d9dfd3", background: "#263d2d",
+              borderRadius: "12px", border: "1px solid #d9dfd3", background: COLOR_PRINCIPAL,
               color: "#fff", cursor: "pointer", fontSize: "16px", fontWeight: 700,
               boxShadow: "0 4px 15px rgba(0,0,0,0.05)",
             }}
@@ -2834,7 +2863,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                     width: "100%", display: "flex", alignItems: "center", justifyContent: "space-between",
                     padding: "13px 14px", border: "none", borderRadius: "9px",
                     background: seccionAbierta === opcion.id ? "#e5eadf" : "transparent",
-                    color: "#263d2d", cursor: "pointer", textAlign: "left", fontSize: "15px",
+                    color: COLOR_PRINCIPAL, cursor: "pointer", textAlign: "left", fontSize: "15px",
                     fontWeight: seccionAbierta === opcion.id ? 700 : 500,
                   }}
                 >
@@ -2843,7 +2872,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                   </span>
                   {opcion.contador !== undefined && opcion.contador > 0 && (
                     <span style={{ minWidth: "24px", height: "24px", padding: "0 7px", borderRadius: "999px",
-                      background: "#263d2d", color: "#fff", display: "flex", alignItems: "center",
+                      background: COLOR_PRINCIPAL, color: "#fff", display: "flex", alignItems: "center",
                       justifyContent: "center", fontSize: "12px", fontWeight: 700 }}>
                       {opcion.contador}
                     </span>
@@ -2869,12 +2898,12 @@ async function eliminarImagen(imagen: ImagenProducto) {
         ========================= */}
         <div ref={categoriasRef} id="admin-categorias" style={{ display: seccionAbierta === "categorias" ? "block" : "none", scrollMarginTop: "24px" }}>
         <div style={{ background: "#fff", borderRadius: "14px", padding: "20px", marginBottom: "25px", boxShadow: "0 4px 20px rgba(0,0,0,0.06)" }}>
-          <h2 style={{ margin: 0, color: "#263d2d" }}>Categorías y subcategorías</h2>
-          <p style={{ margin: "5px 0 0", color: "#666", fontSize: "14px" }}>Creá categorías principales y después agregales todas las subcategorías que necesites.</p>
+          <h2 style={{ margin: 0, color: COLOR_PRINCIPAL }}>Categorías y subcategorías</h2>
+          <p style={{ margin: "5px 0 0", color: COLOR_TEXTO_CLARO, fontSize: "14px" }}>Creá categorías principales y después agregales todas las subcategorías que necesites.</p>
           {categorias.length === 0 && <div style={{ marginTop: "15px", padding: "12px 14px", background: "#fff7e6", border: "1px solid #ead7aa", borderRadius: "9px", color: "#6b571e", fontSize: "14px" }}>No hay categorías jerárquicas cargadas. Ejecutá primero <strong>migracion_supabase.sql</strong> en Supabase.</div>}
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "15px" }}>
             <input value={nuevaCategoriaJerarquica} onChange={e => setNuevaCategoriaJerarquica(e.target.value)} onKeyDown={e => { if(e.key === "Enter") agregarCategoriaPrincipal(); }} placeholder="Nueva categoría principal" style={{ ...inputStyle, flex: 1, minWidth: "230px" }} disabled={guardandoCategoria} />
-            <button type="button" onClick={agregarCategoriaPrincipal} disabled={guardandoCategoria} style={{ ...buttonStyle, background: "#263d2d", color: "#fff" }}>+ Categoría</button>
+            <button type="button" onClick={agregarCategoriaPrincipal} disabled={guardandoCategoria} style={{ ...buttonStyle, background: COLOR_PRINCIPAL, color: "#fff" }}>+ Categoría</button>
           </div>
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", marginTop: "10px" }}>
             <select value={categoriaPadreNueva} onChange={e => setCategoriaPadreNueva(e.target.value ? Number(e.target.value) : "")} style={{ ...inputStyle, maxWidth: "300px" }} disabled={guardandoCategoria}>
@@ -2882,13 +2911,13 @@ async function eliminarImagen(imagen: ImagenProducto) {
               {categorias.map(c => <option key={c.id} value={c.id}>{c.parent_id === null ? c.nombre : `↳ ${c.nombre}`}</option>)}
             </select>
             <input value={nuevaSubcategoria} onChange={e => setNuevaSubcategoria(e.target.value)} onKeyDown={e => { if(e.key === "Enter") agregarCategoriaJerarquica(); }} placeholder="Nueva subcategoría" style={{ ...inputStyle, flex: 1, minWidth: "230px" }} disabled={guardandoCategoria} />
-            <button type="button" onClick={agregarCategoriaJerarquica} disabled={guardandoCategoria} style={{ ...buttonStyle, background: "#e5eadf", color: "#263d2d" }}>+ Subcategoría</button>
+            <button type="button" onClick={agregarCategoriaJerarquica} disabled={guardandoCategoria} style={{ ...buttonStyle, background: "#e5eadf", color: COLOR_PRINCIPAL }}>+ Subcategoría</button>
           </div>
           <div style={{ marginTop: "18px" }}>
             {categorias.filter(c => c.parent_id === null).map(parent => (
               <div key={parent.id} style={{ border: "1px solid #dfe5db", borderRadius: "10px", padding: "10px", marginBottom: "8px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <strong style={{ flex: 1, color: "#263d2d" }}>{parent.nombre}</strong>
+                  <strong style={{ flex: 1, color: COLOR_PRINCIPAL }}>{parent.nombre}</strong>
                   <button type="button" onClick={() => eliminarCategoriaJerarquica(parent)} disabled={guardandoCategoria} style={{ border: "none", background: "#f1dede", color: "#9b3333", borderRadius: "6px", cursor: "pointer", padding: "5px 8px", fontWeight: 700 }}>Eliminar</button>
                 </div>
                 {renderArbolCategorias(parent.id)}
@@ -2928,7 +2957,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
               <h2
                 style={{
                   margin: 0,
-                  color: "#263d2d",
+                  color: COLOR_PRINCIPAL,
                 }}
               >
                 Estadísticas de la página
@@ -2938,7 +2967,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                 style={{
                   margin:
                     "5px 0 0",
-                  color: "#666",
+                  color: COLOR_TEXTO_CLARO,
                   fontSize: "14px",
                 }}
               >
@@ -2958,7 +2987,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                 background:
                   "#e5eadf",
                 color:
-                  "#263d2d",
+                  COLOR_PRINCIPAL,
               }}
             >
               {cargandoEstadisticas
@@ -3007,12 +3036,12 @@ async function eliminarImagen(imagen: ImagenProducto) {
                     ...buttonStyle,
                     background:
                       activo
-                        ? "#263d2d"
+                        ? COLOR_PRINCIPAL
                         : "#e5eadf",
                     color:
                       activo
                         ? "#fff"
-                        : "#263d2d",
+                        : COLOR_PRINCIPAL,
                   }}
                 >
                   {opcion.texto}
@@ -3026,7 +3055,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
               style={{
                 padding: "20px",
                 textAlign: "center",
-                color: "#666",
+                color: COLOR_TEXTO_CLARO,
               }}
             >
               Cargando estadísticas...
@@ -3087,7 +3116,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                   },
                   {
                     titulo: "Facturación",
-                    valor: `$${facturacionPeriodo.toLocaleString(
+                    valor: `${MONEDA}${facturacionPeriodo.toLocaleString(
                       "es-AR"
                     )}`,
                   },
@@ -3123,7 +3152,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                       <div
                         style={{
                           color:
-                            "#666",
+                            COLOR_TEXTO_CLARO,
                           fontSize:
                             "13px",
                           marginBottom:
@@ -3138,7 +3167,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                       <strong
                         style={{
                           color:
-                            "#263d2d",
+                            COLOR_PRINCIPAL,
                           fontSize:
                             "23px",
                         }}
@@ -3153,10 +3182,10 @@ async function eliminarImagen(imagen: ImagenProducto) {
               </div>
 
               <div style={{ background: "#f8f8f4", borderRadius: "10px", padding: "15px", marginBottom: "15px", border: "1px solid #e5e5df" }}>
-                <h3 style={{ marginTop: 0, color: "#263d2d" }}>Productos más vendidos</h3>
+                <h3 style={{ marginTop: 0, color: COLOR_PRINCIPAL }}>Productos más vendidos</h3>
                 {productosMasVendidos.length === 0 ? <p style={{ color: "#777" }}>Todavía no hay ventas confirmadas en este período.</p> : productosMasVendidos.map((p, i) => (
                   <div key={`${p.nombre}-${i}`} style={{ display: "flex", justifyContent: "space-between", gap: "12px", padding: "9px 0", borderBottom: i < productosMasVendidos.length - 1 ? "1px solid #ddd" : "none" }}>
-                    <span>{p.nombre}</span><strong>{p.unidades} u. · ${p.facturacion.toLocaleString("es-AR")}</strong>
+                    <span>{p.nombre}</span><strong>{p.unidades} u. · {MONEDA}{p.facturacion.toLocaleString("es-AR")}</strong>
                   </div>
                 ))}
               </div>
@@ -3199,7 +3228,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                         margin:
                           "0 0 4px",
                         color:
-                          "#263d2d",
+                          COLOR_PRINCIPAL,
                       }}
                     >
                       Visitas por día
@@ -3220,7 +3249,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                   <strong
                     style={{
                       color:
-                        "#263d2d",
+                        COLOR_PRINCIPAL,
                     }}
                   >
                     {totalVisitas} visitas
@@ -3364,7 +3393,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                                   )
                                 }
                                 rx="3"
-                                fill="#263d2d"
+                                fill={COLOR_PRINCIPAL}
                                 opacity="0.85"
                               />
                             );
@@ -3466,7 +3495,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                     style={{
                       marginTop: 0,
                       color:
-                        "#263d2d",
+                        COLOR_PRINCIPAL,
                     }}
                   >
                     Productos más vistos
@@ -3529,7 +3558,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                             <strong
                               style={{
                                 color:
-                                  "#263d2d",
+                                  COLOR_PRINCIPAL,
                               }}
                             >
                               {index +
@@ -3543,7 +3572,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                             <strong
                               style={{
                                 color:
-                                  "#263d2d",
+                                  COLOR_PRINCIPAL,
                                 whiteSpace:
                                   "nowrap",
                               }}
@@ -3592,7 +3621,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                     style={{
                       marginTop: 0,
                       color:
-                        "#263d2d",
+                        COLOR_PRINCIPAL,
                     }}
                   >
                     Embudo de compra
@@ -3676,7 +3705,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                           <strong
                             style={{
                               color:
-                                "#263d2d",
+                                COLOR_PRINCIPAL,
                             }}
                           >
                             {
@@ -3725,7 +3754,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
               <h2
                 style={{
                   margin: 0,
-                  color: "#263d2d",
+                  color: COLOR_PRINCIPAL,
                 }}
               >
                 Pedidos
@@ -3735,7 +3764,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                 style={{
                   margin:
                     "5px 0 0",
-                  color: "#666",
+                  color: COLOR_TEXTO_CLARO,
                   fontSize: "14px",
                 }}
               >
@@ -3763,7 +3792,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                 background:
                   "#e5eadf",
                 color:
-                  "#263d2d",
+                  COLOR_PRINCIPAL,
               }}
             >
               {cargandoPedidos
@@ -3778,7 +3807,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                 padding: "25px",
                 textAlign:
                   "center",
-                color: "#666",
+                color: COLOR_TEXTO_CLARO,
               }}
             >
               Cargando pedidos...
@@ -3875,7 +3904,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                               <strong
                                 style={{
                                   color:
-                                    "#263d2d",
+                                    COLOR_PRINCIPAL,
                                   fontSize:
                                     "18px",
                                 }}
@@ -3978,7 +4007,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                                   background:
                                     "#e5eadf",
                                   color:
-                                    "#263d2d",
+                                    COLOR_PRINCIPAL,
                                 }}
                               >
                                 {abierto
@@ -4001,7 +4030,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                                     style={{
                                       ...buttonStyle,
                                       background:
-                                        "#263d2d",
+                                        COLOR_PRINCIPAL,
                                       color:
                                         "#fff",
                                       opacity:
@@ -4063,7 +4092,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                                   margin:
                                     "0 0 12px",
                                   color:
-                                    "#263d2d",
+                                    COLOR_PRINCIPAL,
                                   fontSize:
                                     "16px",
                                 }}
@@ -4181,7 +4210,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                                           <strong
                                             style={{
                                               color:
-                                                "#263d2d",
+                                                COLOR_PRINCIPAL,
                                               display:
                                                 "block",
                                             }}
@@ -4200,7 +4229,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                                                 fontSize:
                                                   "12px",
                                                 color:
-                                                  "#666",
+                                                  COLOR_TEXTO_CLARO,
                                               }}
                                             >
                                               {item.talle &&
@@ -4227,7 +4256,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                                             {
                                               item.cantidad
                                             }{" "}
-                                            × $
+                                            × ${MONEDA}
                                             {Number(
                                               item.precio_unitario
                                             ).toLocaleString(
@@ -4239,12 +4268,12 @@ async function eliminarImagen(imagen: ImagenProducto) {
                                         <strong
                                           style={{
                                             color:
-                                              "#263d2d",
+                                              COLOR_PRINCIPAL,
                                             whiteSpace:
                                               "nowrap",
                                           }}
                                         >
-                                          $
+                                          {MONEDA}
                                           {Number(
                                             item.subtotal
                                           ).toLocaleString(
@@ -4276,7 +4305,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                                     fontSize:
                                       "18px",
                                     color:
-                                      "#263d2d",
+                                      COLOR_PRINCIPAL,
                                   }}
                                 >
                                   Total: $
@@ -4357,7 +4386,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
               <h2
                 style={{
                   margin: 0,
-                  color: "#263d2d",
+                  color: COLOR_PRINCIPAL,
                 }}
               >
                 Nuevo producto
@@ -4461,7 +4490,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
               <div>
                 <label style={labelStyle}>Descuento (%)</label>
                 <input type="number" min="0" max="100" step="1" value={nuevoProducto.descuento_porcentaje || 0} onChange={(e) => setNuevoProducto({ ...nuevoProducto, descuento_porcentaje: Number(e.target.value) })} style={inputStyle} />
-                <small style={{ display: "block", marginTop: "5px", color: "#777" }}>Precio final: ${Math.round(Number(nuevoProducto.price || 0) * (1 - Number(nuevoProducto.descuento_porcentaje || 0) / 100)).toLocaleString("es-AR")}</small>
+                <small style={{ display: "block", marginTop: "5px", color: "#777" }}>Precio final: {MONEDA}{Math.round(Number(nuevoProducto.price || 0) * (1 - Number(nuevoProducto.descuento_porcentaje || 0) / 100)).toLocaleString("es-AR")}</small>
               </div>
 
               <div>
@@ -4628,7 +4657,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                     fontSize:
                       "13px",
                     color:
-                      "#666",
+                      COLOR_TEXTO_CLARO,
                   }}
                 >
                   {
@@ -4662,7 +4691,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                   fontWeight:
                     600,
                   color:
-                    "#263d2d",
+                    COLOR_PRINCIPAL,
                 }}
               >
                 <input
@@ -4703,7 +4732,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                   style={{
                     marginTop: 0,
                     color:
-                      "#263d2d",
+                      COLOR_PRINCIPAL,
                   }}
                 >
                   Talles y variantes
@@ -4755,7 +4784,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                     style={{
                       ...buttonStyle,
                       background:
-                        "#263d2d",
+                        COLOR_PRINCIPAL,
                       color:
                         "#fff",
                     }}
@@ -4803,7 +4832,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                           <strong
                             style={{
                               color:
-                                "#263d2d",
+                                COLOR_PRINCIPAL,
                               fontSize:
                                 "16px",
                             }}
@@ -4830,6 +4859,65 @@ async function eliminarImagen(imagen: ImagenProducto) {
                           >
                             Eliminar talle
                           </button>
+                        </div>
+
+                        <div style={{ marginBottom: "12px" }}>
+                          <label
+                            style={{
+                              ...labelStyle,
+                              fontSize: "13px",
+                            }}
+                          >
+                            Precio de este talle/modelo
+                          </label>
+                          <input
+                            type="number"
+                            min="0"
+                            value={
+                              preciosPorTalle[talle] ??
+                              nuevoProducto.price
+                            }
+                            onChange={(e) => {
+                              const precio = Number(e.target.value);
+                              setPreciosPorTalle((actuales) => ({
+                                ...actuales,
+                                [talle]: precio,
+                              }));
+                            }}
+                            style={{
+                              ...inputStyle,
+                              maxWidth: "220px",
+                            }}
+                          />
+                        </div>
+
+                        {/* FOTO DEL TALLE/MODELO — DISPONIBLE CON O SIN COLOR */}
+                        <div style={{ marginBottom: "15px", padding: "14px", border: "1px solid #ddd", borderRadius: "10px", background: "#fafafa" }}>
+                          <label style={{ ...labelStyle, fontSize: "13px", display: "block", marginBottom: "10px" }}>
+                            📷 Fotos generales de este talle/modelo
+                          </label>
+                          <input
+                            id={`foto-talle-${talle}`}
+                            type="file"
+                            accept="image/jpeg,image/png,image/webp,image/gif"
+                            multiple
+                            style={{ display: "none" }}
+                            onChange={(e) => {
+                              const archivos = (Array.from(e.target.files || []) as File[]).filter((file) =>
+                                file.type.startsWith("image/")
+                              );
+                              if (archivos.length > 0) seleccionarFotosColor(talle, "", archivos);
+                              e.currentTarget.value = "";
+                            }}
+                          />
+                          <label htmlFor={`foto-talle-${talle}`} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "10px 16px", borderRadius: "8px", background: COLOR_PRINCIPAL, color: "white", cursor: "pointer", fontSize: "14px", fontWeight: 600 }}>
+                            📷 Elegir foto(s) del talle
+                          </label>
+                          {(fotosPorColor[`${talle}__`] || []).length > 0 && (
+                            <p style={{ fontSize: "12px", color: COLOR_TEXTO_CLARO, marginBottom: 0 }}>
+                              {(fotosPorColor[`${talle}__`] || []).length} foto(s) seleccionada(s).
+                            </p>
+                          )}
                         </div>
 
                         <div
@@ -4884,7 +4972,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                               background:
                                 "#e5eadf",
                               color:
-                                "#263d2d",
+                                COLOR_PRINCIPAL,
                             }}
                           >
                             + Agregar color
@@ -4905,9 +4993,8 @@ async function eliminarImagen(imagen: ImagenProducto) {
                               ] || [];
 
                             const precioActual =
-                              preciosPorColor[
-                                clave
-                              ] ??
+                              preciosPorColor[clave] ??
+                              preciosPorTalle[talle] ??
                               nuevoProducto.price;
 
                             return (
@@ -4931,7 +5018,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                                 <strong
                                   style={{
                                     color:
-                                      "#263d2d",
+                                      COLOR_PRINCIPAL,
                                   }}
                                 >
                                   🎨{" "}
@@ -5005,27 +5092,23 @@ async function eliminarImagen(imagen: ImagenProducto) {
                                   </label>
 
                                   <input
+                                    id={`foto-color-${talle}-${color}`}
                                     type="file"
-                                    accept="image/*"
+                                    accept="image/jpeg,image/png,image/webp,image/gif"
                                     multiple
-                                    onChange={(
-                                      e
-                                    ) =>
-                                      seleccionarFotosColor(
-                                        talle,
-                                        color,
-                                        Array.from(
-                                          e
-                                            .target
-                                            .files ||
-                                            []
-                                        )
-                                      )
-                                    }
-                                    style={
-                                      inputStyle
-                                    }
+                                    onChange={(e) => {
+                                      const archivos = (Array.from(e.target.files || []) as File[]).filter((file) =>
+                                        file.type.startsWith("image/")
+                                      );
+                                      if (archivos.length > 0) seleccionarFotosColor(talle, color, archivos);
+                                      e.currentTarget.value = "";
+                                    }}
+                                    style={{ display: "none" }}
                                   />
+
+                                  <label htmlFor={`foto-color-${talle}-${color}`} style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", padding: "10px 16px", borderRadius: "8px", background: "#e5eadf", color: COLOR_PRINCIPAL, cursor: "pointer", fontSize: "14px", fontWeight: 600 }}>
+                                    📷 Elegir foto(s) de {color}
+                                  </label>
 
                                   {fotos.length >
                                     0 && (
@@ -5034,7 +5117,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                                         fontSize:
                                           "12px",
                                         color:
-                                          "#666",
+                                          COLOR_TEXTO_CLARO,
                                       }}
                                     >
                                       {
@@ -5077,7 +5160,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
                 style={{
                   ...buttonStyle,
                   background:
-                    "#263d2d",
+                    COLOR_PRINCIPAL,
                   color:
                     "#fff",
                   padding:
@@ -5108,7 +5191,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
               textAlign:
                 "center",
               color:
-                "#666",
+                COLOR_TEXTO_CLARO,
             }}
           >
             Cargando productos...
@@ -5126,7 +5209,7 @@ async function eliminarImagen(imagen: ImagenProducto) {
               textAlign:
                 "center",
               color:
-                "#666",
+                COLOR_TEXTO_CLARO,
             }}
           >
             No se encontraron productos.
@@ -5256,7 +5339,7 @@ onDragEnd={() => {
                           margin:
                             "0 0 8px",
                           color:
-                            "#263d2d",
+                            COLOR_PRINCIPAL,
                         }}
                       >
                         {
@@ -5272,7 +5355,7 @@ onDragEnd={() => {
                             700,
                         }}
                       >
-                        $
+                        {MONEDA}
                         {Number(
                           producto.price
                         ).toLocaleString(
@@ -5287,7 +5370,7 @@ onDragEnd={() => {
                           fontSize:
                             "13px",
                           color:
-                            "#666",
+                            COLOR_TEXTO_CLARO,
                         }}
                       >
                         Stock:{" "}
@@ -5323,7 +5406,7 @@ onDragEnd={() => {
                                     background:
                                       "#e5eadf",
                                     color:
-                                      "#263d2d",
+                                      COLOR_PRINCIPAL,
                                     padding:
                                       "4px 8px",
                                     borderRadius:
@@ -5359,7 +5442,7 @@ onDragEnd={() => {
                             ...buttonStyle,
                             flex: 1,
                             background:
-                              "#263d2d",
+                              COLOR_PRINCIPAL,
                             color:
                               "#fff",
                           }}
@@ -5458,7 +5541,7 @@ onDragEnd={() => {
                   style={{
                     margin: 0,
                     color:
-                      "#263d2d",
+                      COLOR_PRINCIPAL,
                   }}
                 >
                   Editar producto
@@ -5854,7 +5937,7 @@ onDragEnd={() => {
                       fontSize:
                         "12px",
                       color:
-                        "#666",
+                        COLOR_TEXTO_CLARO,
                     }}
                   >
                     {
@@ -5879,7 +5962,7 @@ onDragEnd={() => {
                     "1px solid #e5e5e5",
                 }}
               >
-                <div style={{ marginBottom: "10px", color: "#666", fontSize: "13px" }}>Arrastrá las imágenes para ponerlas en el orden que quieras.</div>
+                <div style={{ marginBottom: "10px", color: COLOR_TEXTO_CLARO, fontSize: "13px" }}>Arrastrá las imágenes para ponerlas en el orden que quieras.</div>
 
                 <label
                   style={{
@@ -5892,7 +5975,7 @@ onDragEnd={() => {
                     fontWeight:
                       600,
                     color:
-                      "#263d2d",
+                      COLOR_PRINCIPAL,
                   }}
                 >
                   <input
@@ -5937,7 +6020,7 @@ onDragEnd={() => {
                     style={{
                       marginTop: 0,
                       color:
-                        "#263d2d",
+                        COLOR_PRINCIPAL,
                     }}
                   >
                     Talles y variantes
@@ -5985,7 +6068,7 @@ onDragEnd={() => {
                       style={{
                         ...buttonStyle,
                         background:
-                          "#263d2d",
+                          COLOR_PRINCIPAL,
                         color:
                           "#fff",
                       }}
@@ -6038,7 +6121,7 @@ onDragEnd={() => {
                             <strong
                               style={{
                                 color:
-                                  "#263d2d",
+                                  COLOR_PRINCIPAL,
                               }}
                             >
                               Talle:{" "}
@@ -6125,7 +6208,7 @@ onDragEnd={() => {
                                 background:
                                   "#e5eadf",
                                 color:
-                                  "#263d2d",
+                                  COLOR_PRINCIPAL,
                               }}
                             >
                               + Agregar color
@@ -6189,7 +6272,7 @@ onDragEnd={() => {
                                     <strong
                                       style={{
                                         color:
-                                          "#263d2d",
+                                          COLOR_PRINCIPAL,
                                       }}
                                     >
                                       🎨{" "}
@@ -6390,7 +6473,7 @@ onDragEnd={() => {
                                           fontSize:
                                             "12px",
                                           color:
-                                            "#666",
+                                            COLOR_TEXTO_CLARO,
                                           margin:
                                             "5px 0 0",
                                         }}
@@ -6476,7 +6559,7 @@ onDragEnd={() => {
                   style={{
                     ...buttonStyle,
                     background:
-                      "#263d2d",
+                      COLOR_PRINCIPAL,
                     color:
                       "#fff",
                     padding:
