@@ -1,6 +1,6 @@
 import './App.css'
+import { TIENDA_CONFIG } from './config/tienda'
 
-import Header from './components/header'
 import Footer from './components/footer'
 
 import { useEffect, useState } from 'react'
@@ -56,17 +56,92 @@ type ItemCarrito = Producto & {
 }
 
 // =====================================================
-// WHATSAPP LUCKEPET
+// CONFIGURACIÓN DE LA TIENDA
 // =====================================================
 
-const WHATSAPP_NUMERO = '5492664015639'
+const WHATSAPP_NUMERO = TIENDA_CONFIG.contacto.whatsappNumero
+const MONEDA = TIENDA_CONFIG.tienda.moneda
+const COLOR_MENU_PRINCIPAL = '#ba92bb'
+const COLOR_MENU_OSCURO = '#9b729c'
+const COLOR_MENU_MEDIO = '#aa82ad'
+const COLOR_MENU_CLARO = '#c8a8c9'
+const COLOR_MENU_ALTERNATIVO = '#b387b4'
+const COLOR_MENU_SECUNDARIO = '#a67ea7'
+const COLOR_MENU_BOTON = '#ba92bb'
+const COLOR_MENU_BOTON_HOVER = '#a87fa9'
+
+
+const TEXTOS = {
+  carritoVacio: 'Tu carrito está vacío.', completarCampos: 'Completá todos los campos.',
+  errorStock: 'No hay stock suficiente para uno de los productos. Revisá tu carrito e intentá nuevamente.',
+  errorPedido: 'No pudimos registrar el pedido. Intentá nuevamente.', todosLosProductos: 'Todos los productos',
+  sinCategorias: 'No hay categorías disponibles.', checkout: 'Finalizar compra', datosEntrega: 'Datos de entrega',
+  checkoutSubtitulo: 'Completá tus datos para enviar el pedido.', resumenPedido: 'Resumen del pedido',
+  enviandoPedido: 'Enviando pedido...', enviarPedido: 'Enviar pedido', continuarWhatsApp: 'Continuar por WhatsApp',
+  seguirComprando: 'Seguir comprando', sinStock: 'SIN STOCK', sinImagen: 'Sin imagen',
+  alertaSinStock: 'Este producto no tiene stock disponible.', seleccionarTalle: 'Seleccioná un talle.',
+  seleccionarColor: 'Seleccioná un color.', agregarCarrito: 'Agregar al carrito', sinProductosDescripcion: 'Probá buscando otro producto.'
+} as const
+
+const GRADIENTE_MENU_PRINCIPAL = `linear-gradient(135deg, ${COLOR_MENU_PRINCIPAL} 0%, ${COLOR_MENU_OSCURO} 100%)`
+const GRADIENTE_MENU_ALTERNATIVO = `linear-gradient(135deg, ${COLOR_MENU_ALTERNATIVO} 0%, ${COLOR_MENU_SECUNDARIO} 100%)`
+const GRADIENTE_MENU_BOTON = `linear-gradient(135deg, ${COLOR_MENU_BOTON} 0%, ${COLOR_MENU_BOTON_HOVER} 100%)`
+
+const aplicarColoresTienda = () => {
+  const colores = TIENDA_CONFIG.colores
+  const root = document.documentElement
+
+  const variables: Record<string, string> = {
+    '--color-principal': colores.principal,
+    '--color-secundario': colores.secundario,
+    '--color-secundario-claro': colores.secundarioClaro,
+    '--color-fondo': colores.fondo,
+    '--color-texto': colores.texto,
+    '--color-texto-claro': colores.textoClaro,
+
+    '--color-menu-principal': COLOR_MENU_PRINCIPAL,
+    '--color-menu-oscuro': COLOR_MENU_OSCURO,
+    '--color-menu-medio': COLOR_MENU_MEDIO,
+    '--color-menu-claro': COLOR_MENU_CLARO,
+    '--color-menu-alternativo': COLOR_MENU_ALTERNATIVO,
+    '--color-menu-secundario': COLOR_MENU_SECUNDARIO,
+    '--color-menu-boton': COLOR_MENU_BOTON,
+    '--color-menu-boton-hover': COLOR_MENU_BOTON_HOVER,
+
+    '--color-blanco': '#ffffff',
+    '--color-negro': '#000000',
+    '--color-texto-oscuro': '#222222',
+    '--color-texto-medio': '#555555',
+    '--color-texto-suave': '#777777',
+    '--color-placeholder': '#999999',
+    '--color-borde': '#dddddd',
+    '--color-borde-claro': '#eeeeee',
+    '--color-fondo-suave': '#f8f8f8',
+    '--color-fondo-imagen': '#f5f5f5',
+    '--color-hover': '#f0e5f1',
+    '--color-error': '#c62828',
+    '--color-negro-suave': '#333333',
+
+    '--color-menu-oscuro-transparente-10': 'rgba(155,114,156,.10)',
+    '--color-menu-oscuro-transparente-12': 'rgba(155,114,156,.12)',
+    '--color-menu-oscuro-transparente-20': 'rgba(155,114,156,.20)',
+    '--color-menu-oscuro-transparente-25': 'rgba(155,114,156,.25)',
+    '--color-menu-oscuro-transparente-86': 'rgba(155,114,156,.86)',
+    '--color-fondo-transparente-94': 'rgba(255,255,255,.94)',
+  }
+
+  Object.entries(variables).forEach(([nombre, valor]) => {
+    root.style.setProperty(nombre, valor)
+  })
+}
+
 
 // =====================================================
 // ESTADÍSTICAS
 // =====================================================
 
 const obtenerSessionId = () => {
-  const clave = 'luckepet_session_id'
+  const clave = TIENDA_CONFIG.estadisticas.sessionStorageKey
 
   let sessionId = localStorage.getItem(clave)
 
@@ -121,9 +196,56 @@ const registrarEvento = async (
   }
 }
 
+function Header({
+  setMostrarCarrito,
+  cantidadCarrito,
+  busqueda,
+  setBusqueda,
+  menuCategoriasAbierto,
+  setMenuCategoriasAbierto,
+}: {
+  setMostrarCarrito: (valor: boolean) => void
+  cantidadCarrito: number
+  busqueda: string
+  setBusqueda: (valor: string) => void
+  menuCategoriasAbierto: boolean
+  setMenuCategoriasAbierto: (valor: boolean) => void
+}) {
+  const [mostrarBuscador, setMostrarBuscador] = useState(false)
+
+  return (
+    <header className="hero">
+      <div className="topbar">
+        <button type="button" className="boton-menu" aria-label="Abrir categorías" aria-expanded={menuCategoriasAbierto} onClick={() => setMenuCategoriasAbierto(!menuCategoriasAbierto)}>
+          <span></span><span></span><span></span>
+        </button>
+        <img src={TIENDA_CONFIG.marca.logo} alt={TIENDA_CONFIG.marca.nombre} className="logo-img" />
+        <div className="header-acciones">
+          <button type="button" className="boton-buscar" aria-label="Buscar" onClick={() => setMostrarBuscador(v => !v)}>
+            <span className="icono-lupa" aria-hidden="true"></span>
+          </button>
+          <button type="button" className="boton-carrito" aria-label="Abrir carrito" onClick={() => setMostrarCarrito(true)}>
+            <span className="icono-carrito" aria-hidden="true">🛒</span>
+            {cantidadCarrito > 0 && <span className="numero-carrito">{cantidadCarrito}</span>}
+          </button>
+        </div>
+      </div>
+      {mostrarBuscador && (
+        <div className="buscador-desplegable">
+          <div className="buscador-caja">
+            <input value={busqueda} onChange={e => setBusqueda(e.target.value)} placeholder="Buscar productos..." />
+          </div>
+        </div>
+      )}
+    </header>
+  )
+}
+
 function App() {
   const [productos, setProductos] =
     useState<Producto[]>([])
+
+  const [, setCargandoProductos] = useState(true)
 
   const [categorias, setCategorias] =
     useState<Categoria[]>([])
@@ -312,6 +434,14 @@ const [, setImagenesGenerales] =
   }, [])
 
   // =====================================================
+  // COLORES GLOBALES DE LA TIENDA
+  // =====================================================
+
+  useEffect(() => {
+    aplicarColoresTienda()
+  }, [])
+
+  // =====================================================
   // CARGAR FOTOS DE PORTADA
   // =====================================================
 
@@ -327,11 +457,11 @@ const [, setImagenesGenerales] =
 
   useEffect(() => {
     if (
-      !window.history.state?.luckepetBase
+      !window.history.state?.tiendaBase
     ) {
       window.history.replaceState(
         {
-          luckepetBase: true
+          tiendaBase: true
         },
         '',
         window.location.href
@@ -383,6 +513,8 @@ const [, setImagenesGenerales] =
   // =====================================================
 
 async function cargarProductos() {
+    setCargandoProductos(true)
+    try {
   const {
     data,
     error
@@ -408,7 +540,10 @@ async function cargarProductos() {
   setProductos(
     (data || []) as Producto[]
   )
-}
+    } finally {
+      setCargandoProductos(false)
+    }
+  }
 
   // =====================================================
   // SECCIONES
@@ -724,7 +859,7 @@ async function cargarProductos() {
 
     window.history.pushState(
       {
-        luckepetProducto: true,
+        tiendaProducto: true,
         productoId: producto.id
       },
       '',
@@ -809,7 +944,7 @@ async function cargarProductos() {
 
   const cerrarProducto = () => {
     if (
-      window.history.state?.luckepetProducto
+      window.history.state?.tiendaProducto
     ) {
       window.history.back()
       return
@@ -1291,7 +1426,7 @@ async function cargarProductos() {
 
     if (!carrito.length) {
       setErrorPedido(
-        'Tu carrito está vacío.'
+        TEXTOS.carritoVacio
       )
 
       return
@@ -1307,7 +1442,7 @@ async function cargarProductos() {
       )
     ) {
       setErrorPedido(
-        'Completá todos los campos.'
+        TEXTOS.completarCampos
       )
 
       return
@@ -1529,11 +1664,11 @@ async function cargarProductos() {
         )
 
       const mensajeWhatsApp =
-        `Hola LuckePet 👋\n` +
+        `${TIENDA_CONFIG.marca.nombre} 👋\n` +
         `Ya realicé mi compra.\n\n` +
         `N.º de pedido: #${numeroPedido}\n` +
         `Nombre: ${nombreCompleto}\n` +
-        `Total: $${totalPedido}\n\n` +
+        `Total: ${MONEDA}${totalPedido}\n\n` +
         `Muchas gracias.`
 
       const urlWhatsApp =
@@ -1580,11 +1715,11 @@ async function cargarProductos() {
           .includes('stock')
       ) {
         setErrorPedido(
-          'No hay stock suficiente para uno de los productos. Revisá tu carrito e intentá nuevamente.'
+          TEXTOS.errorStock
         )
       } else {
         setErrorPedido(
-          'No pudimos registrar el pedido. Intentá nuevamente.'
+          TEXTOS.errorPedido
         )
       }
     } finally {
@@ -1745,7 +1880,11 @@ async function cargarProductos() {
                 display: 'flex',
                 alignItems: 'center',
                 gap: '4px',
-                background: '#BA92BB',
+                background: nivel === 0
+                  ? GRADIENTE_MENU_PRINCIPAL
+                  : nivel === 1
+                    ? GRADIENTE_MENU_ALTERNATIVO
+                    : GRADIENTE_MENU_BOTON,
                 borderRadius: '13px',
                 overflow: 'hidden',
                 border: '1px solid rgba(255,255,255,.13)',
@@ -1767,11 +1906,11 @@ async function cargarProductos() {
                   display: 'flex',
                   alignItems: 'center',
                   gap: '9px',
-                  textAlign: 'center',
+                  textAlign: 'left',
                   border: 0,
                   background: 'transparent',
                   padding: '13px 12px',
-                  paddingLeft: '12px',
+                  paddingLeft: `${12 + nivel * 12}px`,
                   fontWeight: nivel === 0 ? 750 : 550,
                   color: '#fff',
                   cursor: 'pointer',
@@ -1833,10 +1972,11 @@ async function cargarProductos() {
             {tieneHijos && expandida && (
               <div
                 style={{
-                  marginTop: '8px',
-                  marginLeft: 0,
-                  paddingLeft: 0,
-                  animation: 'luckepetCategoryOpen .18s ease'
+                  marginTop: '6px',
+                  marginLeft: nivel === 0 ? '13px' : '9px',
+                  paddingLeft: '11px',
+                  borderLeft: '2px solid rgba(255,255,255,.16)',
+                  animation: 'tiendaCategoryOpen .18s ease'
                 }}
               >
                 <button
@@ -1850,13 +1990,13 @@ async function cargarProductos() {
                     textAlign: 'left',
                     border: '1px solid rgba(255,255,255,.14)',
                     background: 'rgba(255,255,255,.11)',
-                    padding: '13px 12px',
-                    borderRadius: '13px',
-                    fontWeight: 550,
+                    padding: '9px 11px',
+                    borderRadius: '9px',
+                    fontWeight: 700,
                     color: '#fff',
                     cursor: 'pointer',
-                    fontSize: '14px',
-                    marginBottom: '8px',
+                    fontSize: '12px',
+                    marginBottom: '6px',
                     boxSizing: 'border-box',
                     transition: 'background .18s ease, transform .18s ease'
                   }}
@@ -1883,156 +2023,32 @@ async function cargarProductos() {
 
   return (
     <div className="app">
-<Header
-  setMostrarCarrito={
-    setMostrarCarrito
-  }
-  cantidadCarrito={
-    cantidadCarrito
-  }
-  busqueda={
-    busqueda
-  }
-  setBusqueda={
-    setBusqueda
-  }
-  menuCategoriasAbierto={
-    menuCategoriasAbierto
-  }
-  setMenuCategoriasAbierto={
-    setMenuCategoriasAbierto
-  }
-/>
+      <Header
+        setMostrarCarrito={setMostrarCarrito}
+        cantidadCarrito={cantidadCarrito}
+        busqueda={busqueda}
+        setBusqueda={setBusqueda}
+        menuCategoriasAbierto={menuCategoriasAbierto}
+        setMenuCategoriasAbierto={setMenuCategoriasAbierto}
+      />
 
       <style>{`
-        @keyframes luckepetCategoryOpen {
+        @keyframes tiendaCategoryOpen {
           from { opacity: 0; transform: translateY(-3px); }
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
 
-      {/* MENÚ DE CATEGORÍAS - SE ABRE DESDE LA BARRA SUPERIOR */}
-
-<div
-  style={{
-    position: 'fixed',
-    left: 0,
-    top: '68px',
-    width: '320px',
-    height: 'min(72vh, calc(100vh - 68px))',
-    maxHeight: 'calc(100vh - 68px)',
-
-    overflowY: 'auto',
-    overflowX: 'hidden',
-    overscrollBehaviorY: 'contain',
-    WebkitOverflowScrolling: 'touch',
-
-    background: '#ddc9dd',
-
-    border: '1px solid rgba(255,255,255,.13)',
-    borderLeft: 'none',
-    borderRadius: '0 0 18px 0',
-
-    boxShadow: '8px 12px 30px rgba(0,0,0,.22)',
-
-    padding: '12px',
-
-    scrollbarWidth: 'thin',
-    scrollbarColor: 'rgba(255,255,255,.25) transparent',
-
-    transform: menuCategoriasAbierto
-      ? 'translateY(0)'
-      : 'translateY(-110%)',
-
-    opacity: menuCategoriasAbierto ? 1 : 0,
-
-    pointerEvents: menuCategoriasAbierto
-      ? 'auto'
-      : 'none',
-
-    transition:
-      'transform .25s ease, opacity .2s ease',
-
-    boxSizing: 'border-box'
-  }}
->
-  <div
-    style={{
-      position: 'sticky',
-      top: 0,
-      zIndex: 2,
-      background: '#BA92BB',
-      paddingBottom: '11px'
-    }}
-  >
-    <button
-      type="button"
-      onClick={() => seleccionarCategoria('Todos')}
-      style={{
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: '8px',
-
-        border: '1px solid rgba(255,255,255,.20)',
-
-        background: '#fff',
-
-        padding: '11px 12px',
-
-        borderRadius: '11px',
-
-        fontWeight: 800,
-
-        color: '#BA92BB',
-
-        cursor: 'pointer',
-
-        boxShadow: '0 3px 10px rgba(0,0,0,.14)',
-
-        transition:
-          'transform .18s ease, box-shadow .18s ease'
-      }}
-
-      onMouseEnter={(e) => {
-        e.currentTarget.style.transform =
-          'translateY(-1px)'
-
-        e.currentTarget.style.boxShadow =
-          '0 5px 13px rgba(0,0,0,.18)'
-      }}
-
-      onMouseLeave={(e) => {
-        e.currentTarget.style.transform =
-          'translateY(0)'
-
-        e.currentTarget.style.boxShadow =
-          '0 3px 10px rgba(0,0,0,.14)'
-      }}
-    >
-      <span aria-hidden="true">⌂</span>
-
-      <span>
-        Todos los productos
-      </span>
-    </button>
-  </div>
-
-  {categorias.length > 0 ? (
-    renderMenuCategorias(null)
-  ) : (
-    <div
-      style={{
-        color: '#fff',
-        padding: '14px 8px',
-        fontSize: '13px'
-      }}
-    >
-      No hay categorías disponibles.
-    </div>
-  )}
-</div>
+      {menuCategoriasAbierto && (
+        <div className="menu-categorias-desplegable" role="navigation" aria-label="Categorías">
+          <button type="button" className="menu-todos" onClick={() => seleccionarCategoria('Todos')}>
+            <span>⌂</span> Todos los productos
+          </button>
+          {categorias.length > 0 ? renderMenuCategorias(null) : (
+            <div className="menu-sin-categorias">{TEXTOS.sinCategorias}</div>
+          )}
+        </div>
+      )}
 
       {/* =================================================
           CARRITO
@@ -2059,7 +2075,7 @@ async function cargarProductos() {
 
           {carrito.length === 0 ? (
             <p>
-              Tu carrito está vacío
+              {TEXTOS.carritoVacio}
             </p>
           ) : (
             <>
@@ -2108,7 +2124,7 @@ async function cargarProductos() {
                       )}
 
                       <p>
-                        $
+                        {MONEDA}
                         {Number(
                           producto.price
                         ).toLocaleString(
@@ -2172,7 +2188,7 @@ async function cargarProductos() {
                   </span>
 
                   <strong>
-                    $
+                    {MONEDA}
                     {totalCarrito.toLocaleString(
                       'es-AR'
                     )}
@@ -2224,7 +2240,7 @@ async function cargarProductos() {
               </button>
 
               <span>
-                Finalizar compra
+                {TEXTOS.checkout}
               </span>
 
               <button
@@ -2248,17 +2264,16 @@ async function cargarProductos() {
                 }
               >
                 <h1>
-                  Datos de entrega
+                  {TEXTOS.datosEntrega}
                 </h1>
 
                 <p className="checkout-subtitulo">
-                  Completá tus datos para
-                  enviar el pedido.
+                  {TEXTOS.checkoutSubtitulo}
                 </p>
 
                 <div className="checkout-resumen">
                   <strong>
-                    Resumen del pedido
+                    {TEXTOS.resumenPedido}
                   </strong>
 
                   {carrito.map(
@@ -2284,7 +2299,7 @@ async function cargarProductos() {
                         </span>
 
                         <strong>
-                          $
+                          {MONEDA}
                           {(
                             Number(
                               producto.price ||
@@ -2306,7 +2321,7 @@ async function cargarProductos() {
                     </span>
 
                     <strong>
-                      $
+                      {MONEDA}
                       {totalCarrito.toLocaleString(
                         'es-AR'
                       )}
@@ -2463,8 +2478,8 @@ async function cargarProductos() {
                   }
                 >
                   {enviandoPedido
-                    ? 'Enviando pedido...'
-                    : 'Enviar pedido'}
+                    ? TEXTOS.enviandoPedido
+                    : TEXTOS.enviarPedido}
                 </button>
               </form>
             ) : (
@@ -2520,7 +2535,7 @@ async function cargarProductos() {
                       )
                     }
                   >
-                    Continuar por WhatsApp
+                    {TEXTOS.continuarWhatsApp}
                   </button>
                 )}
 
@@ -2531,7 +2546,7 @@ async function cargarProductos() {
                     cerrarCheckout
                   }
                 >
-                  Seguir comprando
+                  {TEXTOS.seguirComprando}
                 </button>
               </div>
             )}
@@ -2548,13 +2563,11 @@ async function cargarProductos() {
           {productosFiltrados.length === 0 ? (
             <div className="sin-productos">
               <h3>
-              No encontramos
-                productos
+                🐾 {TIENDA_CONFIG.textos.sinProductos}
               </h3>
 
               <p>
-                Probá buscando otro
-                producto.
+                {TEXTOS.sinProductosDescripcion}
               </p>
             </div>
           ) : (
@@ -2643,7 +2656,7 @@ async function cargarProductos() {
                                   '1px'
                               }}
                             >
-                              SIN STOCK
+                              {TEXTOS.sinStock}
                             </div>
                           )}
                         </div>
@@ -2660,7 +2673,7 @@ async function cargarProductos() {
                               'center'
                           }}
                         >
-                          Sin imagen
+                          {TEXTOS.sinImagen}
                         </div>
                       )}
                     </div>
@@ -2673,9 +2686,9 @@ async function cargarProductos() {
                       </h3>
 
                       <div className="precio-carrito">
-                        {Number(producto.descuento_porcentaje || 0) > 0 && <span style={{ textDecoration: 'line-through', color: '#888', fontSize: '13px', marginRight: '6px' }}>${Number(producto.price || 0).toLocaleString('es-AR')}</span>}
+                        {Number(producto.descuento_porcentaje || 0) > 0 && <span style={{ textDecoration: 'line-through', color: '#888', fontSize: '13px', marginRight: '6px' }}>{MONEDA}{Number(producto.price || 0).toLocaleString('es-AR')}</span>}
                         <strong className="precio">
-                          $
+                          {MONEDA}
                           {calcularPrecioFinal(producto.price, producto).toLocaleString('es-AR', { maximumFractionDigits: 0 })}
                         </strong>
 
@@ -2903,7 +2916,7 @@ async function cargarProductos() {
                   />
                 ) : (
                   <div className="producto-sin-imagen">
-                    Sin imagen
+                    {TEXTOS.sinImagen}
                   </div>
                 )}
 
@@ -3001,8 +3014,8 @@ async function cargarProductos() {
                 </h1>
 
                 <div className="producto-precio">
-                  {Number(productoSeleccionado.descuento_porcentaje || 0) > 0 && !talleSeleccionado && <span style={{ textDecoration: 'line-through', color: '#888', fontSize: '14px', marginRight: '8px' }}>${Number(productoSeleccionado.price || 0).toLocaleString('es-AR')}</span>}
-                  ${obtenerPrecioActual().toLocaleString('es-AR', { maximumFractionDigits: 0 })}
+                  {Number(productoSeleccionado.descuento_porcentaje || 0) > 0 && !talleSeleccionado && <span style={{ textDecoration: 'line-through', color: '#888', fontSize: '14px', marginRight: '8px' }}>{MONEDA}{Number(productoSeleccionado.price || 0).toLocaleString('es-AR')}</span>}
+                  {MONEDA}{obtenerPrecioActual().toLocaleString('es-AR', { maximumFractionDigits: 0 })}
                   {Number(productoSeleccionado.descuento_porcentaje || 0) > 0 && <span style={{ marginLeft: '8px', fontSize: '13px', color: '#7b2d2d' }}>-{Number(productoSeleccionado.descuento_porcentaje)}%</span>}
                 </div>
 
@@ -3152,7 +3165,7 @@ async function cargarProductos() {
                       ) <= 0
                     ) {
                       alert(
-                        'Este producto no tiene stock disponible.'
+                        TEXTOS.alertaSinStock
                       )
 
                       return
@@ -3163,7 +3176,7 @@ async function cargarProductos() {
                       !talleSeleccionado
                     ) {
                       alert(
-                        'Seleccioná un talle.'
+                        TEXTOS.seleccionarTalle
                       )
 
                       return
@@ -3177,7 +3190,7 @@ async function cargarProductos() {
                       !colorSeleccionado
                     ) {
                       alert(
-                        'Seleccioná un color.'
+                        TEXTOS.seleccionarColor
                       )
 
                       return
@@ -3234,8 +3247,8 @@ async function cargarProductos() {
                   {stockDisponible(
                     productoSeleccionado
                   ) > 0
-                    ? 'Agregar al carrito'
-                    : 'Sin stock'}
+                    ? TEXTOS.agregarCarrito
+                    : TEXTOS.sinStock}
                 </button>
               </div>
             </div>

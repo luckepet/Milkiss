@@ -1355,10 +1355,6 @@ function Admin() {
         }
       }
 
-      alert(
-        "Producto creado correctamente."
-      );
-
       setNuevoProducto({
         ...productoVacio,
         talles: [],
@@ -1920,10 +1916,6 @@ async function eliminarImagen(imagen: ImagenProducto) {
           imagenesActuales.length
         );
       }
-
-      alert(
-        "Cambios guardados correctamente."
-      );
 
       setImagenesSeleccionadas(
         []
