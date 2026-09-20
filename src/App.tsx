@@ -336,12 +336,103 @@ const [, setImagenesGenerales] =
     })
 
   // =====================================================
+  // RECUPERACIÓN DE CONTRASEÑA
+  // =====================================================
+
+  const [modoRecuperacion, setModoRecuperacion] =
+    useState(false)
+
+  const [nuevaContrasena, setNuevaContrasena] =
+    useState('')
+
+  const [repetirContrasena, setRepetirContrasena] =
+    useState('')
+
+  const [errorRecuperacion, setErrorRecuperacion] =
+    useState('')
+
+  const [mensajeRecuperacion, setMensajeRecuperacion] =
+    useState('')
+
+  const [guardandoContrasena, setGuardandoContrasena] =
+    useState(false)
+
+  // =====================================================
   // REGISTRAR VISITA
   // =====================================================
 
   useEffect(() => {
     registrarEvento('visita')
   }, [])
+  
+  // =====================================================
+  // DETECTAR RECUPERACIÓN DE CONTRASEÑA
+  // =====================================================
+
+  useEffect(() => {
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setModoRecuperacion(true)
+        setErrorRecuperacion('')
+        setMensajeRecuperacion('')
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [])
+
+  const cambiarContrasena = async (
+    e: FormEvent<HTMLFormElement>
+  ) => {
+    e.preventDefault()
+
+    setErrorRecuperacion('')
+    setMensajeRecuperacion('')
+
+    if (!nuevaContrasena || !repetirContrasena) {
+      setErrorRecuperacion('Completá los dos campos.')
+      return
+    }
+
+    if (nuevaContrasena !== repetirContrasena) {
+      setErrorRecuperacion('Las contraseñas no coinciden.')
+      return
+    }
+
+    if (nuevaContrasena.length < 6) {
+      setErrorRecuperacion('La contraseña debe tener al menos 6 caracteres.')
+      return
+    }
+
+    setGuardandoContrasena(true)
+
+    const { error } = await supabase.auth.updateUser({
+      password: nuevaContrasena
+    })
+
+    setGuardandoContrasena(false)
+
+    if (error) {
+      console.error('ERROR CAMBIANDO CONTRASEÑA:', error)
+      setErrorRecuperacion(
+        error.message || 'No pudimos cambiar la contraseña.'
+      )
+      return
+    }
+
+    setMensajeRecuperacion('Contraseña cambiada correctamente.')
+    setNuevaContrasena('')
+    setRepetirContrasena('')
+
+    window.setTimeout(() => {
+      setModoRecuperacion(false)
+    }, 1500)
+  }
+
 
   // =====================================================
   // NORMALIZAR URL
@@ -2019,6 +2110,128 @@ async function cargarProductos() {
           </div>
         )
       })
+  }
+
+  if (modoRecuperacion) {
+    return (
+      <div
+        style={{
+          minHeight: '100vh',
+          background: '#f0ead2',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: '24px',
+          boxSizing: 'border-box'
+        }}
+      >
+        <div
+          style={{
+            width: '100%',
+            maxWidth: '420px',
+            background: '#fff',
+            borderRadius: '16px',
+            padding: '30px',
+            boxSizing: 'border-box',
+            boxShadow: '0 8px 30px rgba(0,0,0,.12)',
+            textAlign: 'center'
+          }}
+        >
+          <img
+            src={TIENDA_CONFIG.marca.logo}
+            alt={TIENDA_CONFIG.marca.nombre}
+            style={{
+              width: '120px',
+              maxWidth: '60%',
+              marginBottom: '18px'
+            }}
+          />
+
+          <h1 style={{ margin: '0 0 10px', color: '#333' }}>
+            Nueva contraseña
+          </h1>
+
+          <p style={{ margin: '0 0 24px', color: '#666' }}>
+            Elegí una nueva contraseña para tu cuenta de administrador.
+          </p>
+
+          <form
+            onSubmit={cambiarContrasena}
+            style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '14px'
+            }}
+          >
+            <input
+              type="password"
+              value={nuevaContrasena}
+              onChange={e => setNuevaContrasena(e.target.value)}
+              placeholder="Nueva contraseña"
+              autoComplete="new-password"
+              minLength={6}
+              required
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                padding: '13px',
+                border: '1px solid #ddd',
+                borderRadius: '9px',
+                fontSize: '16px'
+              }}
+            />
+
+            <input
+              type="password"
+              value={repetirContrasena}
+              onChange={e => setRepetirContrasena(e.target.value)}
+              placeholder="Repetir contraseña"
+              autoComplete="new-password"
+              minLength={6}
+              required
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                padding: '13px',
+                border: '1px solid #ddd',
+                borderRadius: '9px',
+                fontSize: '16px'
+              }}
+            />
+
+            {errorRecuperacion && (
+              <p style={{ margin: 0, color: '#c62828', fontSize: '14px' }}>
+                {errorRecuperacion}
+              </p>
+            )}
+
+            {mensajeRecuperacion && (
+              <p style={{ margin: 0, color: '#2e7d32', fontSize: '14px' }}>
+                {mensajeRecuperacion}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={guardandoContrasena}
+              style={{
+                border: 'none',
+                borderRadius: '9px',
+                padding: '13px',
+                background: '#ba92bb',
+                color: '#fff',
+                fontWeight: 700,
+                fontSize: '16px',
+                cursor: guardandoContrasena ? 'default' : 'pointer',
+                opacity: guardandoContrasena ? 0.7 : 1
+              }}
+            >
+              {guardandoContrasena ? 'Guardando...' : 'Cambiar contraseña'}
+            </button>
+          </form>
+        </div>
+      </div>
+    )
   }
 
   return (
