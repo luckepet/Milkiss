@@ -241,6 +241,24 @@ function Header({
   )
 }
 
+// =====================================================
+// RECUPERACIÓN: escuchar Supabase lo antes posible
+// =====================================================
+// Supabase puede procesar el enlace de recuperación durante
+// la inicialización del cliente, antes de que React ejecute
+// los useEffect del componente. Por eso este listener vive
+// a nivel de módulo, inmediatamente después de importar
+// el cliente.
+let recuperacionDetectada = false
+const suscriptoresRecuperacion = new Set<() => void>()
+
+supabase.auth.onAuthStateChange((event) => {
+  if (event === 'PASSWORD_RECOVERY') {
+    recuperacionDetectada = true
+    suscriptoresRecuperacion.forEach(notificar => notificar())
+  }
+})
+
 function App() {
   const [productos, setProductos] =
     useState<Producto[]>([])
@@ -340,7 +358,7 @@ const [, setImagenesGenerales] =
   // =====================================================
 
   const [modoRecuperacion, setModoRecuperacion] =
-    useState(false)
+    useState(recuperacionDetectada)
 
   const [nuevaContrasena, setNuevaContrasena] =
     useState('')
@@ -370,18 +388,39 @@ const [, setImagenesGenerales] =
   // =====================================================
 
   useEffect(() => {
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setModoRecuperacion(true)
-        setErrorRecuperacion('')
-        setMensajeRecuperacion('')
-      }
-    })
+    const activarModoRecuperacion = () => {
+      setModoRecuperacion(true)
+      setErrorRecuperacion('')
+      setMensajeRecuperacion('')
+    }
+
+    // Si Supabase ya detectó el recovery antes de montar React.
+    if (recuperacionDetectada) {
+      activarModoRecuperacion()
+    }
+
+    // Escuchar si Supabase lo detecta después de montar React.
+    suscriptoresRecuperacion.add(activarModoRecuperacion)
+
+    // Fallback: detectar explícitamente type=recovery en la URL.
+    // Supabase puede limpiar el hash después de procesarlo, por eso
+    // esto acompaña al listener de arriba y no lo reemplaza.
+    const hashParams = new URLSearchParams(
+      window.location.hash.replace(/^#/, '')
+    )
+    const searchParams = new URLSearchParams(
+      window.location.search.replace(/^\?/, '')
+    )
+
+    if (
+      hashParams.get('type') === 'recovery' ||
+      searchParams.get('type') === 'recovery'
+    ) {
+      activarModoRecuperacion()
+    }
 
     return () => {
-      subscription.unsubscribe()
+      suscriptoresRecuperacion.delete(activarModoRecuperacion)
     }
   }, [])
 
