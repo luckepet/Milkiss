@@ -2592,3 +2592,142 @@ body,
   }
 }
 
+
+
+/* =====================================================
+   AJUSTE MILKISS - HEADER + DETALLE DE PRODUCTO
+===================================================== */
+.header-acciones {
+  min-width: 96px;
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+
+.logo-img {
+  justify-self: center;
+  min-width: 0;
+}
+
+.producto-transferencia {
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: rgba(186, 146, 187, 0.10);
+  border: 1px solid rgba(186, 146, 187, 0.20);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.producto-transferencia strong {
+  color: #222;
+  font-size: 18px;
+}
+
+.producto-transferencia > span {
+  color: #555;
+  font-size: 13px;
+}
+
+.producto-transferencia details { margin-top: 2px; }
+
+.producto-transferencia summary {
+  color: #9b729c;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.producto-transferencia summary::-webkit-details-marker { display: none; }
+.producto-transferencia summary::after { content: ' +'; }
+.producto-transferencia details[open] summary::after { content: ' −'; }
+
+.producto-transferencia details p {
+  margin: 7px 0 0;
+  color: #666;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.producto-cantidad {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.producto-cantidad > span {
+  font-size: 15px;
+  font-weight: 700;
+  color: #222;
+}
+
+.producto-cantidad-controles {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  border: 1px solid #d9d9d9;
+  border-radius: 9px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.producto-cantidad-controles button {
+  width: 46px;
+  height: 44px;
+  background: #fff;
+  color: #ba92bb;
+  font-size: 23px;
+  font-weight: 700;
+}
+
+.producto-cantidad-controles button:hover:not(:disabled) { background: #f6eef6; }
+.producto-cantidad-controles button:disabled { opacity: 0.35; cursor: not-allowed; }
+
+.producto-cantidad-controles strong {
+  min-width: 42px;
+  text-align: center;
+  font-size: 16px;
+  color: #222;
+}
+
+@media (max-width: 600px) {
+  .topbar {
+    grid-template-columns: 46px minmax(0, 1fr) 96px !important;
+    padding-left: 6px !important;
+    padding-right: 6px !important;
+  }
+
+  .logo-img {
+    width: auto !important;
+    max-width: 118px !important;
+    max-height: 52px !important;
+    justify-self: center !important;
+  }
+
+  .header-acciones {
+    width: 96px !important;
+    min-width: 96px !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 5px !important;
+  }
+
+  .boton-buscar,
+  .boton-carrito {
+    width: 42px !important;
+    height: 42px !important;
+    min-width: 42px !important;
+    flex: 0 0 42px !important;
+  }
+
+  .icono-carrito { font-size: 21px !important; }
+  .numero-carrito { top: 0 !important; right: -1px !important; }
+
+  .producto-transferencia { margin-top: 9px; padding: 11px 12px; }
+  .producto-transferencia strong { font-size: 17px; }
+  .producto-cantidad { margin-top: 22px; }
+}

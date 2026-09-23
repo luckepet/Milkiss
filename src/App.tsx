@@ -69,6 +69,7 @@ const COLOR_MENU_ALTERNATIVO = '#b387b4'
 const COLOR_MENU_SECUNDARIO = '#a67ea7'
 const COLOR_MENU_BOTON = '#ba92bb'
 const COLOR_MENU_BOTON_HOVER = '#a87fa9'
+const DESCUENTO_TRANSFERENCIA = 15
 
 
 const TEXTOS = {
@@ -241,24 +242,6 @@ function Header({
   )
 }
 
-// =====================================================
-// RECUPERACIÓN: escuchar Supabase lo antes posible
-// =====================================================
-// Supabase puede procesar el enlace de recuperación durante
-// la inicialización del cliente, antes de que React ejecute
-// los useEffect del componente. Por eso este listener vive
-// a nivel de módulo, inmediatamente después de importar
-// el cliente.
-let recuperacionDetectada = false
-const suscriptoresRecuperacion = new Set<() => void>()
-
-supabase.auth.onAuthStateChange((event) => {
-  if (event === 'PASSWORD_RECOVERY') {
-    recuperacionDetectada = true
-    suscriptoresRecuperacion.forEach(notificar => notificar())
-  }
-})
-
 function App() {
   const [productos, setProductos] =
     useState<Producto[]>([])
@@ -297,6 +280,9 @@ function App() {
 
   const [colorSeleccionado, setColorSeleccionado] =
     useState('')
+
+  const [cantidadProducto, setCantidadProducto] =
+    useState(1)
 
   const [variantes, setVariantes] =
     useState<Variante[]>([])
@@ -358,7 +344,7 @@ const [, setImagenesGenerales] =
   // =====================================================
 
   const [modoRecuperacion, setModoRecuperacion] =
-    useState(recuperacionDetectada)
+    useState(false)
 
   const [nuevaContrasena, setNuevaContrasena] =
     useState('')
@@ -388,39 +374,18 @@ const [, setImagenesGenerales] =
   // =====================================================
 
   useEffect(() => {
-    const activarModoRecuperacion = () => {
-      setModoRecuperacion(true)
-      setErrorRecuperacion('')
-      setMensajeRecuperacion('')
-    }
-
-    // Si Supabase ya detectó el recovery antes de montar React.
-    if (recuperacionDetectada) {
-      activarModoRecuperacion()
-    }
-
-    // Escuchar si Supabase lo detecta después de montar React.
-    suscriptoresRecuperacion.add(activarModoRecuperacion)
-
-    // Fallback: detectar explícitamente type=recovery en la URL.
-    // Supabase puede limpiar el hash después de procesarlo, por eso
-    // esto acompaña al listener de arriba y no lo reemplaza.
-    const hashParams = new URLSearchParams(
-      window.location.hash.replace(/^#/, '')
-    )
-    const searchParams = new URLSearchParams(
-      window.location.search.replace(/^\?/, '')
-    )
-
-    if (
-      hashParams.get('type') === 'recovery' ||
-      searchParams.get('type') === 'recovery'
-    ) {
-      activarModoRecuperacion()
-    }
+    const {
+      data: { subscription }
+    } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setModoRecuperacion(true)
+        setErrorRecuperacion('')
+        setMensajeRecuperacion('')
+      }
+    })
 
     return () => {
-      suscriptoresRecuperacion.delete(activarModoRecuperacion)
+      subscription.unsubscribe()
     }
   }, [])
 
@@ -623,6 +588,7 @@ const [, setImagenesGenerales] =
 
   const limpiarProductoSeleccionado = () => {
     setProductoSeleccionado(null)
+    setCantidadProducto(1)
     setTalleSeleccionado('')
     setColorSeleccionado('')
     setVariantes([])
@@ -1000,6 +966,7 @@ async function cargarProductos() {
       producto
     )
 
+    setCantidadProducto(1)
     setTalleSeleccionado('')
     setColorSeleccionado('')
     setVariantes([])
@@ -3271,6 +3238,15 @@ async function cargarProductos() {
                   {Number(productoSeleccionado.descuento_porcentaje || 0) > 0 && <span style={{ marginLeft: '8px', fontSize: '13px', color: '#7b2d2d' }}>-{Number(productoSeleccionado.descuento_porcentaje)}%</span>}
                 </div>
 
+                <div className="producto-transferencia">
+                  <strong>
+                    {MONEDA}{Math.round(obtenerPrecioActual() * (1 - DESCUENTO_TRANSFERENCIA / 100)).toLocaleString('es-AR')} con transferencia
+                  </strong>
+                  <span>
+                    {DESCUENTO_TRANSFERENCIA}% de descuento pagando con transferencia
+                  </span>
+                </div>
+
                 {productoSeleccionado.description && (
                   <div className="producto-descripcion">
                     <h3>
@@ -3385,6 +3361,41 @@ async function cargarProductos() {
                     </div>
                   )}
 
+                {/* CANTIDAD */}
+
+                <div className="producto-cantidad">
+                  <span>Cantidad</span>
+                  <div className="producto-cantidad-controles">
+                    <button
+                      type="button"
+                      aria-label="Disminuir cantidad"
+                      onClick={() =>
+                        setCantidadProducto(actual =>
+                          Math.max(1, actual - 1)
+                        )
+                      }
+                    >
+                      −
+                    </button>
+                    <strong>{cantidadProducto}</strong>
+                    <button
+                      type="button"
+                      aria-label="Aumentar cantidad"
+                      disabled={cantidadProducto >= stockDisponible(productoSeleccionado)}
+                      onClick={() =>
+                        setCantidadProducto(actual =>
+                          Math.min(
+                            stockDisponible(productoSeleccionado),
+                            actual + 1
+                          )
+                        )
+                      }
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+
                 {/* STOCK */}
 
                 <div className="producto-stock">
@@ -3468,7 +3479,7 @@ async function cargarProductos() {
                       productoSeleccionado.image ||
                       ''
 
-                    agregarAlCarrito({
+                    const productoParaCarrito: ItemCarrito = {
                       ...productoSeleccionado,
 
                       talle:
@@ -3491,8 +3502,13 @@ async function cargarProductos() {
 
                       cantidad:
                         1
-                    })
+                    }
 
+                    for (let i = 0; i < cantidadProducto; i += 1) {
+                      agregarAlCarrito(productoParaCarrito)
+                    }
+
+                    setCantidadProducto(1)
                     cerrarProducto()
                   }}
                 >
