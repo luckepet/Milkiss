@@ -69,7 +69,7 @@ const COLOR_MENU_ALTERNATIVO = '#b387b4'
 const COLOR_MENU_SECUNDARIO = '#a67ea7'
 const COLOR_MENU_BOTON = '#ba92bb'
 const COLOR_MENU_BOTON_HOVER = '#a87fa9'
-const DESCUENTO_TRANSFERENCIA = 15
+const DESCUENTO_TRANSFERENCIA = 10
 
 
 const TEXTOS = {
@@ -2851,33 +2851,7 @@ async function cargarProductos() {
                             }}
                           />
 
-                          {sinStock && (
-                            <div
-                              style={{
-                                position:
-                                  'absolute',
-                                inset: 0,
-                                background:
-                                  'rgba(0, 0, 0, 0.58)',
-                                display:
-                                  'flex',
-                                alignItems:
-                                  'center',
-                                justifyContent:
-                                  'center',
-                                color:
-                                  'white',
-                                fontSize:
-                                  '20px',
-                                fontWeight:
-                                  'bold',
-                                letterSpacing:
-                                  '1px'
-                              }}
-                            >
-                              {TEXTOS.sinStock}
-                            </div>
-                          )}
+          
                         </div>
                       ) : (
                         <div
@@ -2903,7 +2877,26 @@ async function cargarProductos() {
                           producto.name
                         }
                       </h3>
-
+{!sinStock && (
+  <div
+    style={{
+      width: '100%',
+      boxSizing: 'border-box',
+      marginTop: '6px',
+      marginBottom: '8px',
+      background: '#ba92bb',
+      color: '#fff',
+      borderRadius: '7px',
+      padding: '7px 8px',
+      textAlign: 'center',
+      fontSize: '11px',
+      fontWeight: 700,
+      lineHeight: 1.2
+    }}
+  >
+    {DESCUENTO_TRANSFERENCIA}% OFF con efectivo o transferencia 
+  </div>
+)}
                       <div className="precio-carrito">
                         {Number(producto.descuento_porcentaje || 0) > 0 && <span style={{ textDecoration: 'line-through', color: '#888', fontSize: '13px', marginRight: '6px' }}>{MONEDA}{Number(producto.price || 0).toLocaleString('es-AR')}</span>}
                         <strong className="precio">
@@ -2954,6 +2947,7 @@ async function cargarProductos() {
                         >
                           +
                         </button>
+                        
                       </div>
                     </div>
                   </div>
