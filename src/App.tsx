@@ -343,8 +343,15 @@ const [, setImagenesGenerales] =
   // RECUPERACIÓN DE CONTRASEÑA
   // =====================================================
 
-  const [modoRecuperacion, setModoRecuperacion] =
-    useState(false)
+const [modoRecuperacion, setModoRecuperacion] =
+  useState(() => {
+    const hash = window.location.hash
+
+    return (
+      hash.includes('type=recovery') ||
+      hash.includes('access_token=')
+    )
+  })
 
   const [nuevaContrasena, setNuevaContrasena] =
     useState('')
@@ -373,21 +380,46 @@ const [, setImagenesGenerales] =
   // DETECTAR RECUPERACIÓN DE CONTRASEÑA
   // =====================================================
 
-  useEffect(() => {
-    const {
-      data: { subscription }
-    } = supabase.auth.onAuthStateChange((event) => {
-      if (event === 'PASSWORD_RECOVERY') {
-        setModoRecuperacion(true)
-        setErrorRecuperacion('')
-        setMensajeRecuperacion('')
-      }
-    })
+useEffect(() => {
+  let recuperacionDetectada = false
 
-    return () => {
-      subscription.unsubscribe()
+  const activarRecuperacion = () => {
+    if (recuperacionDetectada) return
+
+    recuperacionDetectada = true
+    setModoRecuperacion(true)
+    setErrorRecuperacion('')
+    setMensajeRecuperacion('')
+  }
+
+  // Detecta inmediatamente si Supabase ya inició una sesión
+  // de recuperación al abrir el enlace del correo.
+  supabase.auth.getSession().then(({ data }) => {
+    if (data.session) {
+      const hash = window.location.hash
+
+      if (
+        hash.includes('access_token=') ||
+        hash.includes('type=recovery')
+      ) {
+        activarRecuperacion()
+      }
     }
-  }, [])
+  })
+
+  // También escucha el evento específico de recuperación.
+  const {
+    data: { subscription }
+  } = supabase.auth.onAuthStateChange((event) => {
+    if (event === 'PASSWORD_RECOVERY') {
+      activarRecuperacion()
+    }
+  })
+
+  return () => {
+    subscription.unsubscribe()
+  }
+}, [])
 
   const cambiarContrasena = async (
     e: FormEvent<HTMLFormElement>
