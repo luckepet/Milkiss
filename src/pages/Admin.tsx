@@ -4007,60 +4007,58 @@ async function eliminarImagen(imagen: ImagenProducto) {
                                   : "Ver detalle"}
                               </button>
 
-                              {pedido.estado ===
-                                "pendiente" && (
-                                <>
-                                  <button
-                                    onClick={() =>
-                                      confirmarPedido(
-                                        pedido.id
-                                      )
-                                    }
-                                    disabled={
-                                      procesando
-                                    }
-                                    style={{
-                                      ...buttonStyle,
-                                      background:
-                                        COLOR_PRINCIPAL,
-                                      color:
-                                        "#fff",
-                                      opacity:
-                                        procesando
-                                          ? 0.6
-                                          : 1,
-                                    }}
-                                  >
-                                    {procesando
-                                      ? "Procesando..."
-                                      : "Confirmar"}
-                                  </button>
+                             {pedido.estado === "pendiente" && (
+  <>
+    <button
+      onClick={() =>
+        confirmarPedido(pedido.id)
+      }
+      disabled={procesando}
+      style={{
+        ...buttonStyle,
+        background: COLOR_PRINCIPAL,
+        color: "#fff",
+        opacity: procesando ? 0.6 : 1,
+      }}
+    >
+      {procesando
+        ? "Procesando..."
+        : "Confirmar"}
+    </button>
 
-                                  <button
-                                    onClick={() =>
-                                      cancelarPedido(
-                                        pedido.id
-                                      )
-                                    }
-                                    disabled={
-                                      procesando
-                                    }
-                                    style={{
-                                      ...buttonStyle,
-                                      background:
-                                        "#f1dede",
-                                      color:
-                                        "#9b3333",
-                                      opacity:
-                                        procesando
-                                          ? 0.6
-                                          : 1,
-                                    }}
-                                  >
-                                    Cancelar
-                                  </button>
-                                </>
-                              )}
+    <button
+      onClick={() =>
+        cancelarPedido(pedido.id)
+      }
+      disabled={procesando}
+      style={{
+        ...buttonStyle,
+        background: "#f1dede",
+        color: "#9b3333",
+        opacity: procesando ? 0.6 : 1,
+      }}
+    >
+      Cancelar
+    </button>
+  </>
+)}
+
+{pedido.estado === "confirmado" && (
+  <span
+    style={{
+      display: "inline-flex",
+      alignItems: "center",
+      padding: "9px 13px",
+      borderRadius: "8px",
+      background: "#e5eadf",
+      color: COLOR_PRINCIPAL,
+      fontWeight: 700,
+      fontSize: "13px",
+    }}
+  >
+    ✓ Pedido confirmado
+  </span>
+)}
                             </div>
                           </div>
 
